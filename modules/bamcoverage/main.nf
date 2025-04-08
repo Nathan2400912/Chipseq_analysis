@@ -9,7 +9,7 @@ process BAMCOVERAGE {
     tuple val(meta), path(bam), path(bai)
 
     output:
-    tuple val(meta), path('*.bw'), emit: bigwig
+    path('*.bw'), emit: bigwig
 
     shell:
     """
