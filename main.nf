@@ -15,6 +15,9 @@ include {MACS3} from './modules/macs3'
 include {BEDTOOLS_INTERSECT} from './modules/bedtools_intersect'
 include {BEDTOOLS_REMOVE} from './modules/bedtools_remove'
 include {HOMER_ANNOTATE} from './modules/homer_annotate'
+include {COMPUTEMATRIX} from './modules/deeptools_computematrix'
+include {PLOTPROFILE} from './modules/plotprofile'
+include {FINDMOTIFS} from './modules/findmotifs'
 
 workflow {
 
@@ -72,4 +75,16 @@ workflow {
     BEDTOOLS_REMOVE(BEDTOOLS_INTERSECT.out.peaks, params.blacklist)
     HOMER_ANNOTATE(BEDTOOLS_REMOVE.out.peaks, params.genome, params.gtf)
     
+    ip_samples = BAMCOVERAGE.out.bigwig
+    .filter { file -> file.toString().contains("IP") }
+    .map { files -> 
+        def name = files.getName()
+        def parts = name.split('_') 
+        def replicates = parts[1].replace('.bw', '')
+        tuple(replicates, files)}
+
+    COMPUTEMATRIX(ip_samples, params.bed)
+    PLOTPROFILE(COMPUTEMATRIX.out.matrix)
+    FINDMOTIFS(BEDTOOLS_REMOVE.out.peaks, params.genome)
+
 }
